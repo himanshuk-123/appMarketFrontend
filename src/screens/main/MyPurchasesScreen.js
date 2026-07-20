@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert, Image, Linking,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+
+const FALLBACK_IMG = require('../../../assets/AppMarketIcon.png');
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
 import { getMyPurchases, getDownloadLinks } from '../../api/purchases';
@@ -21,7 +24,7 @@ function PurchasedAppCard({ purchase, onDownload }) {
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <Image
-          source={purchase.app?.thumbnail ? { uri: purchase.app.thumbnail } : { uri: '' }}
+          source={purchase.app?.thumbnail ? { uri: purchase.app.thumbnail } : FALLBACK_IMG}
           style={styles.thumb}
         />
         <View style={{ flex: 1 }}>
@@ -71,9 +74,13 @@ export default function MyPurchasesScreen({ navigation }) {
     }
   }, []);
 
-  useEffect(() => {
-    fetchPurchases();
-  }, [fetchPurchases]);
+  // Refetch every time the tab is focused, so a fresh purchase shows up
+  // immediately without needing to log out and back in.
+  useFocusEffect(
+    useCallback(() => {
+      fetchPurchases();
+    }, [fetchPurchases])
+  );
 
   const handleDownload = async (appId, type) => {
     try {

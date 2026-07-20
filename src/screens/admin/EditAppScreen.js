@@ -20,6 +20,7 @@ export default function EditAppScreen({ route, navigation }) {
     category: app.category || 'tools',
     thumbnail: app.thumbnail || '',
     previewUrl: app.previewUrl || '',
+    livePreviewUrl: app.livePreviewUrl || '',
     apkUrl: app.apkUrl || '',
     aabUrl: app.aabUrl || '',
     codeZipUrl: app.codeZipUrl || '',
@@ -123,6 +124,23 @@ export default function EditAppScreen({ route, navigation }) {
             />
           </View>
         ))}
+
+        {/* Live Preview URL */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Live Preview Link (optional)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="https://preview.appure.com/your-app"
+            placeholderTextColor={COLORS.textMuted}
+            value={form.livePreviewUrl}
+            onChangeText={(v) => updateField('livePreviewUrl', v)}
+            autoCapitalize="none"
+            keyboardType="url"
+          />
+          <Text style={styles.hintText}>
+            Hosted interactive preview link. Buyers tap "Try Live Preview" to explore before buying.
+          </Text>
+        </View>
 
         {/* Files Section */}
         <Text style={styles.sectionTitle}>Files & Media</Text>

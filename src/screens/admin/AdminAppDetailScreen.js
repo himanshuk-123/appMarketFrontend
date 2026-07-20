@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
 import { getAppById, deleteApp } from '../../api/apps';
 
+const FALLBACK_IMG = require('../../../assets/AppMarketIcon.png');
+
 function ConfigRow({ icon, label, value, color, onOpen }) {
   const hasValue = value && value !== 'null' && value !== 'undefined';
   return (
@@ -120,7 +122,7 @@ export default function AdminAppDetailScreen({ route, navigation }) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         {/* Thumbnail */}
         <Image
-          source={app.thumbnail ? { uri: app.thumbnail } : { uri: '' }}
+          source={app.thumbnail ? { uri: app.thumbnail } : FALLBACK_IMG}
           style={styles.thumbnail}
         />
 
@@ -175,11 +177,19 @@ export default function AdminAppDetailScreen({ route, navigation }) {
             />
             <View style={styles.divider} />
             <ConfigRow
+              icon="videocam-outline"
+              label="Demo Video"
+              value={app.previewUrl ? 'Uploaded ✓' : null}
+              color="#E91E8C"
+              onOpen={app.previewUrl ? () => Linking.openURL(app.previewUrl) : null}
+            />
+            <View style={styles.divider} />
+            <ConfigRow
               icon="eye-outline"
               label="Live Preview URL"
-              value={app.previewUrl || null}
-              color={COLORS.textSecondary}
-              onOpen={app.previewUrl ? () => Linking.openURL(app.previewUrl) : null}
+              value={app.livePreviewUrl || null}
+              color={COLORS.primary}
+              onOpen={app.livePreviewUrl ? () => Linking.openURL(app.livePreviewUrl) : null}
             />
           </View>
         </View>

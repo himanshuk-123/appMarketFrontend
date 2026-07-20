@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
 import { purchaseApp } from '../../api/purchases';
 
+const FALLBACK_IMG = require('../../../assets/AppMarketIcon.png');
+
 export default function PurchaseScreen({ route, navigation }) {
   const { app } = route.params;
   const [loading, setLoading] = useState(false);
@@ -39,7 +41,7 @@ export default function PurchaseScreen({ route, navigation }) {
         {/* App preview */}
         <View style={styles.appCard}>
           <Image
-            source={{ uri: app.thumbnail || 'https://via.placeholder.com/80' }}
+            source={app.thumbnail ? { uri: app.thumbnail } : FALLBACK_IMG}
             style={styles.appThumb}
           />
           <View style={{ flex: 1 }}>

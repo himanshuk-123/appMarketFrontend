@@ -39,7 +39,7 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Text style={styles.brand}>AppMarket</Text>
+      <Text style={styles.brand}>Appure</Text>
       <Text style={styles.title}>Create account</Text>
       <Text style={styles.subtitle}>Join thousands of users</Text>
 
@@ -59,7 +59,7 @@ export default function RegisterScreen({ navigation }) {
             onChangeText={field.setter}
             keyboardType={field.type || 'default'}
             secureTextEntry={field.secure || false}
-            autoCapitalize={field.type === 'email-address' ? 'none' : 'words'}
+            autoCapitalize={field.type === 'email-address' || field.secure ? 'none' : 'words'}
           />
         </View>
       ))}

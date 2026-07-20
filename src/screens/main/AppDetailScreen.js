@@ -11,6 +11,7 @@ import { getAppById } from '../../api/apps';
 import { getMyPurchases } from '../../api/purchases';
 
 const { width, height } = Dimensions.get('window');
+const FALLBACK_IMG = require('../../../assets/AppMarketIcon.png');
 
 // Full screen media viewer modal
 function MediaViewer({ visible, items, startIndex, onClose }) {
@@ -106,7 +107,7 @@ export default function AppDetailScreen({ route, navigation }) {
       ]);
       setApp(appRes.data.app);
       const purchased = purchasesRes.data.purchases.some(
-        (p) => p.appId === appId && p.status === 'completed'
+        (p) => String(p.appId) === String(appId) && p.status === 'completed'
       );
       setIsPurchased(purchased);
     } catch (err) {
@@ -176,7 +177,7 @@ export default function AppDetailScreen({ route, navigation }) {
           </ScrollView>
         ) : (
           <Image
-            source={app.thumbnail ? { uri: app.thumbnail } : { uri: '' }}
+            source={app.thumbnail ? { uri: app.thumbnail } : FALLBACK_IMG}
             style={styles.fallbackImage}
             resizeMode="cover"
           />
@@ -190,7 +191,7 @@ export default function AppDetailScreen({ route, navigation }) {
         <View style={styles.body}>
           <View style={styles.titleRow}>
             <View style={styles.appIcon}>
-              <Image source={app.thumbnail ? { uri: app.thumbnail } : { uri: '' }} style={styles.iconImg} />
+              <Image source={app.thumbnail ? { uri: app.thumbnail } : FALLBACK_IMG} style={styles.iconImg} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.appName}>{app.name}</Text>
@@ -199,6 +200,22 @@ export default function AppDetailScreen({ route, navigation }) {
               </View>
             </View>
           </View>
+
+          {/* Live Preview */}
+          {app.livePreviewUrl ? (
+            <TouchableOpacity
+              style={styles.previewBtn}
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('LivePreview', { url: app.livePreviewUrl, name: app.name })}
+            >
+              <Ionicons name="play-circle" size={22} color={COLORS.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.previewBtnText}>Try Live Preview</Text>
+                <Text style={styles.previewBtnHint}>Tap through the app before you buy</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
+            </TouchableOpacity>
+          ) : null}
 
           {/* What you get */}
           <View style={styles.perksRow}>
@@ -321,6 +338,19 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   categoryText: { fontSize: 12, color: COLORS.textSecondary },
+  previewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: COLORS.primary + '15',
+    borderWidth: 1,
+    borderColor: COLORS.primary + '50',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+  },
+  previewBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.primary },
+  previewBtnHint: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
   perksRow: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,

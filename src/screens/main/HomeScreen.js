@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TextInput, FlatList, TouchableOpacity,
-  StyleSheet, ScrollView, ActivityIndicator, RefreshControl,
+  StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, CATEGORIES } from '../../constants';
@@ -16,6 +16,8 @@ export default function HomeScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'grid'
+  const isGrid = viewMode === 'grid';
 
   const fetchApps = useCallback(async () => {
     try {
@@ -24,8 +26,8 @@ export default function HomeScreen({ navigation }) {
       if (selectedCategory !== 'all') params.category = selectedCategory;
       const res = await getApps(params);
       setApps(res.data.apps);
-    } catch {
-      // silently fail, keep existing list
+    } catch (err) {
+      Alert.alert('Error', err.message || 'Failed to load apps. Check your connection.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -83,6 +85,25 @@ export default function HomeScreen({ navigation }) {
         ))}
       </ScrollView>
 
+      {/* Toolbar: result count + list/grid toggle */}
+      <View style={styles.toolbar}>
+        <Text style={styles.resultCount}>{apps.length} apps</Text>
+        <View style={styles.toggleGroup}>
+          <TouchableOpacity
+            style={[styles.toggleBtn, !isGrid && styles.toggleBtnActive]}
+            onPress={() => setViewMode('list')}
+          >
+            <Ionicons name="list" size={18} color={!isGrid ? COLORS.white : COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.toggleBtn, isGrid && styles.toggleBtnActive]}
+            onPress={() => setViewMode('grid')}
+          >
+            <Ionicons name="grid" size={16} color={isGrid ? COLORS.white : COLORS.textMuted} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* App List */}
       {loading ? (
         <View style={styles.centered}>
@@ -90,11 +111,15 @@ export default function HomeScreen({ navigation }) {
         </View>
       ) : (
         <FlatList
+          key={viewMode}
           data={apps}
           keyExtractor={(item) => item.id.toString()}
+          numColumns={isGrid ? 2 : 1}
+          columnWrapperStyle={isGrid ? styles.gridRow : undefined}
           renderItem={({ item }) => (
             <AppCard
               app={item}
+              grid={isGrid}
               onPress={() => navigation.navigate('AppDetail', { appId: item.id })}
             />
           )}
@@ -129,8 +154,8 @@ const styles = StyleSheet.create({
   },
   searchIcon: { marginRight: 8 },
   searchInput: { flex: 1, color: COLORS.text, fontSize: 14, paddingVertical: 12 },
-  categoriesScroll: { maxHeight: 44 },
-  categoriesContent: { paddingHorizontal: 20, gap: 8 },
+  categoriesScroll: { height: 56, flexGrow: 0, flexShrink: 0 },
+  categoriesContent: { paddingHorizontal: 20, gap: 8, alignItems: 'center', paddingVertical: 6 },
   catChip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -143,7 +168,34 @@ const styles = StyleSheet.create({
   catChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   catText: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '500' },
   catTextActive: { color: COLORS.white },
+  toolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 14,
+    marginBottom: 2,
+  },
+  resultCount: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '500' },
+  toggleGroup: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: 3,
+    gap: 3,
+  },
+  toggleBtn: {
+    width: 34,
+    height: 30,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleBtnActive: { backgroundColor: COLORS.primary },
   list: { padding: 20, paddingTop: 16 },
+  gridRow: { gap: 12 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60 },
   emptyText: { color: COLORS.textMuted, fontSize: 15 },
 });

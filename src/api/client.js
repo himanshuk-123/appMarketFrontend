@@ -17,7 +17,17 @@ client.interceptors.request.use(async (config) => {
 client.interceptors.response.use(
   (res) => res,
   (error) => {
-    const message = error.response?.data?.message || 'Something went wrong';
+    let message;
+    if (error.response) {
+      // Server responded with an error status
+      message = error.response.data?.message || `Server error (${error.response.status})`;
+    } else if (error.code === 'ECONNABORTED') {
+      message = 'Request timed out. Please try again.';
+    } else if (error.message === 'Network Error') {
+      message = 'Network error — check your connection and that the server is running.';
+    } else {
+      message = error.message || 'Something went wrong';
+    }
     return Promise.reject(new Error(message));
   }
 );

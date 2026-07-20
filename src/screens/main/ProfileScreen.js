@@ -60,11 +60,11 @@ export default function ProfileScreen({ navigation }) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>App</Text>
-        <MenuItem icon="information-circle-outline" label="About" onPress={() => {}} />
+        <MenuItem icon="information-circle-outline" label="About" onPress={() => navigation.navigate('About')} />
         <MenuItem icon="log-out-outline" label="Logout" onPress={handleLogout} danger />
       </View>
 
-      <Text style={styles.version}>AppMarket v1.0.0</Text>
+      <Text style={styles.version}>Appure v1.0.0</Text>
     </ScrollView>
   );
 }

@@ -11,7 +11,7 @@ import ScreenshotsField from '../../components/ScreenshotsField';
 
 const EMPTY_FORM = {
   name: '', description: '', version: '1.0.0', price: '',
-  category: 'tools', thumbnail: '', previewUrl: '',
+  category: 'tools', thumbnail: '', previewUrl: '', livePreviewUrl: '',
   apkUrl: '', aabUrl: '', codeZipUrl: '',
 };
 
@@ -49,18 +49,8 @@ export default function AddAppScreen({ navigation }) {
       Alert.alert('Missing Thumbnail', 'Please upload a thumbnail image');
       return;
     }
-    if (!form.apkUrl) {
-      Alert.alert('Missing APK', 'Please upload the APK file');
-      return;
-    }
-    if (!form.aabUrl) {
-      Alert.alert('Missing AAB', 'Please upload the AAB file');
-      return;
-    }
-    if (!form.codeZipUrl) {
-      Alert.alert('Missing Source Code', 'Please upload the source code ZIP file');
-      return;
-    }
+    // APK / AAB / source code are optional — you can publish a design-only
+    // listing now and add the real files later when the app is built.
 
     setLoading(true);
     try {
@@ -136,6 +126,23 @@ export default function AddAppScreen({ navigation }) {
           </View>
         ))}
 
+        {/* Live Preview URL */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Live Preview Link (optional)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="https://preview.appure.com/your-app"
+            placeholderTextColor={COLORS.textMuted}
+            value={form.livePreviewUrl}
+            onChangeText={(v) => updateField('livePreviewUrl', v)}
+            autoCapitalize="none"
+            keyboardType="url"
+          />
+          <Text style={styles.fieldHint}>
+            Paste the hosted interactive preview link. Buyers tap "Try Live Preview" to explore the app before buying.
+          </Text>
+        </View>
+
         {/* Files & Media */}
         <Text style={styles.sectionTitle}>Files & Media</Text>
 
@@ -168,7 +175,6 @@ export default function AddAppScreen({ navigation }) {
           onChange={(url) => updateField('apkUrl', url)}
           onUploadStart={onUploadStart}
           onUploadEnd={onUploadEnd}
-          required
         />
 
         <FileUploadField
@@ -180,7 +186,6 @@ export default function AddAppScreen({ navigation }) {
           onChange={(url) => updateField('aabUrl', url)}
           onUploadStart={onUploadStart}
           onUploadEnd={onUploadEnd}
-          required
         />
 
         <FileUploadField
@@ -192,7 +197,6 @@ export default function AddAppScreen({ navigation }) {
           onChange={(url) => updateField('codeZipUrl', url)}
           onUploadStart={onUploadStart}
           onUploadEnd={onUploadEnd}
-          required
         />
 
         <FileUploadField
@@ -262,6 +266,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   textarea: { height: 100, textAlignVertical: 'top' },
+  fieldHint: { fontSize: 11, color: COLORS.textMuted, marginTop: 6, lineHeight: 16 },
   catScroll: { marginBottom: 20 },
   catChip: {
     paddingHorizontal: 14,

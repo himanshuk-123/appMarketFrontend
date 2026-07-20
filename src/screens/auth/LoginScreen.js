@@ -30,7 +30,7 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Text style={styles.brand}>AppMarket</Text>
+      <Text style={styles.brand}>Appure</Text>
       <Text style={styles.title}>Welcome back</Text>
       <Text style={styles.subtitle}>Sign in to your account</Text>
 

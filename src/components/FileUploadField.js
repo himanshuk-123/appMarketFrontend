@@ -9,6 +9,24 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants';
 import client from '../api/client';
 
+// Upload that retries once on a transient failure (the first request in a
+// session sometimes fails on a cold connection, then succeeds immediately).
+async function uploadWithRetry(url, formData, timeout, attempts = 2) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await client.post(url, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout,
+      });
+    } catch (err) {
+      lastErr = err;
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 800));
+    }
+  }
+  throw lastErr;
+}
+
 /**
  * FileUploadField
  *
@@ -68,10 +86,7 @@ export default function FileUploadField({ type, label, icon, color, value, onCha
         type: asset.mimeType || (isImage ? 'image/jpeg' : isVideo ? 'video/mp4' : 'application/octet-stream'),
       });
 
-      const res = await client.post(`/upload?type=${type}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 300000, // 5 min for large video files
-      });
+      const res = await uploadWithRetry(`/upload?type=${type}`, formData, 300000);
 
       onChange(res.data.url);
     } catch (err) {

@@ -10,6 +10,24 @@ import client from '../api/client';
 
 const MAX_SCREENSHOTS = 5;
 
+// Upload that retries once on a transient failure (the first request in a
+// session sometimes fails on a cold connection, then succeeds immediately).
+async function uploadWithRetry(url, formData, timeout, attempts = 2) {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await client.post(url, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout,
+      });
+    } catch (err) {
+      lastErr = err;
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 800));
+    }
+  }
+  throw lastErr;
+}
+
 /**
  * ScreenshotsField
  *
@@ -52,10 +70,7 @@ export default function ScreenshotsField({ screenshots = [], onAdd, onDelete, on
         type: asset.mimeType || 'image/jpeg',
       });
 
-      const res = await client.post('/upload?type=screenshot', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 60000,
-      });
+      const res = await uploadWithRetry('/upload?type=screenshot', formData, 60000);
 
       onAdd(res.data.url);
     } catch (err) {
