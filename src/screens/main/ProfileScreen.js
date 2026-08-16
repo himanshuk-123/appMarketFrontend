@@ -1,16 +1,16 @@
 import React from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView,
+  View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
 import { useAuth } from '../../context/AuthContext';
 
-function MenuItem({ icon, label, onPress, danger }) {
+function MenuItem({ icon, label, onPress, danger, color }) {
   return (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-      <View style={[styles.menuIcon, danger && { backgroundColor: COLORS.error + '22' }]}>
-        <Ionicons name={icon} size={20} color={danger ? COLORS.error : COLORS.primary} />
+      <View style={[styles.menuIcon, danger && { backgroundColor: COLORS.error + '22' }, color && { backgroundColor: color + '22' }]}>
+        <Ionicons name={icon} size={20} color={danger ? COLORS.error : color || COLORS.primary} />
       </View>
       <Text style={[styles.menuLabel, danger && { color: COLORS.error }]}>{label}</Text>
       {!danger && <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />}
@@ -26,6 +26,21 @@ export default function ProfileScreen({ navigation }) {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Logout', style: 'destructive', onPress: logout },
     ]);
+  };
+
+  const handleWhatsAppSupport = () => {
+    const message = encodeURIComponent(`Hi! I need support regarding the Appure app market.`);
+    const phone = '919999999999';
+    const url = `whatsapp://send?phone=${phone}&text=${message}`;
+    Linking.canOpenURL(url).then((supported) => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        Linking.openURL(`https://wa.me/${phone}?text=${message}`);
+      }
+    }).catch(() => {
+      Alert.alert('Support Contact', 'WhatsApp is not installed. Contact support at support@appure.com');
+    });
   };
 
   const initials = user?.name
@@ -59,8 +74,14 @@ export default function ProfileScreen({ navigation }) {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App</Text>
-        <MenuItem icon="information-circle-outline" label="About" onPress={() => navigation.navigate('About')} />
+        <Text style={styles.sectionTitle}>Support & Help</Text>
+        <MenuItem
+          icon="logo-whatsapp"
+          label="Chat on WhatsApp Support"
+          color={COLORS.whatsapp || '#25D366'}
+          onPress={handleWhatsAppSupport}
+        />
+        <MenuItem icon="information-circle-outline" label="About Appure" onPress={() => navigation.navigate('About')} />
         <MenuItem icon="log-out-outline" label="Logout" onPress={handleLogout} danger />
       </View>
 

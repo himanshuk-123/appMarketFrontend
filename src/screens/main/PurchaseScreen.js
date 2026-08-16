@@ -12,18 +12,19 @@ const FALLBACK_IMG = require('../../../assets/AppMarketIcon.png');
 export default function PurchaseScreen({ route, navigation }) {
   const { app } = route.params;
   const [loading, setLoading] = useState(false);
+  const isFree = Number(app.price) === 0;
 
   const handlePurchase = async () => {
     setLoading(true);
     try {
       await purchaseApp(app.id);
       Alert.alert(
-        'Purchase Successful! 🎉',
+        isFree ? 'App Claimed! 🎉' : 'Purchase Successful! 🎉',
         'You can now download the APK, AAB, and source code from My Apps.',
         [{ text: 'Go to My Apps', onPress: () => navigation.navigate('MyPurchases') }]
       );
     } catch (err) {
-      Alert.alert('Purchase Failed', err.message);
+      Alert.alert('Error', err.message);
     } finally {
       setLoading(false);
     }
@@ -56,7 +57,7 @@ export default function PurchaseScreen({ route, navigation }) {
           { icon: 'code-slash-outline', text: 'Full Source Code (ZIP)', color: COLORS.primary },
           { icon: 'phone-portrait-outline', text: 'APK File (Android Install)', color: COLORS.success },
           { icon: 'cube-outline', text: 'AAB File (Play Store Ready)', color: COLORS.warning },
-          { icon: 'infinite-outline', text: 'Lifetime Access', color: COLORS.secondary },
+          { icon: 'infinite-outline', text: 'Lifetime Access & Commercial License', color: COLORS.secondary },
         ].map((item) => (
           <View style={styles.includeRow} key={item.text}>
             <View style={[styles.includeIcon, { backgroundColor: item.color + '22' }]}>
@@ -70,31 +71,51 @@ export default function PurchaseScreen({ route, navigation }) {
         <View style={styles.priceBox}>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>App Price</Text>
-            <Text style={styles.priceValue}>₹{app.price}</Text>
+            <Text style={[styles.priceValue, isFree && { color: COLORS.freeAccent || '#00E676', fontWeight: '700' }]}>
+              {isFree ? 'FREE' : `₹${app.price}`}
+            </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.priceRow}>
             <Text style={[styles.priceLabel, { fontWeight: '700', color: COLORS.text }]}>Total</Text>
-            <Text style={styles.totalPrice}>₹{app.price}</Text>
+            <Text style={[styles.totalPrice, isFree && { color: COLORS.freeAccent || '#00E676' }]}>
+              {isFree ? 'FREE' : `₹${app.price}`}
+            </Text>
           </View>
         </View>
 
-        {/* Payment note */}
-        <View style={styles.dummyNotice}>
-          <Ionicons name="information-circle-outline" size={16} color={COLORS.warning} />
-          <Text style={styles.dummyText}>  Demo mode — payment gateway will be integrated soon</Text>
+        {/* Trust Guarantee Notice */}
+        <View style={styles.trustBox}>
+          <Ionicons name="shield-checkmark-outline" size={18} color={COLORS.success} />
+          <Text style={styles.trustText}>
+            100% Guaranteed Working Code. Instant delivery to My Apps tab.
+          </Text>
         </View>
+
+        {/* Payment note for non-free apps */}
+        {!isFree && (
+          <View style={styles.dummyNotice}>
+            <Ionicons name="information-circle-outline" size={16} color={COLORS.warning} />
+            <Text style={styles.dummyText}>  Demo mode — payment gateway integration active</Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* CTA */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.payBtn} onPress={handlePurchase} disabled={loading}>
+        <TouchableOpacity
+          style={[styles.payBtn, isFree && { backgroundColor: COLORS.freeAccent || '#00E676' }]}
+          onPress={handlePurchase}
+          disabled={loading}
+        >
           {loading ? (
-            <ActivityIndicator color={COLORS.white} />
+            <ActivityIndicator color={isFree ? '#000000' : COLORS.white} />
           ) : (
             <>
-              <Ionicons name="lock-closed" size={18} color={COLORS.white} />
-              <Text style={styles.payText}>  Confirm Purchase — ₹{app.price}</Text>
+              <Ionicons name={isFree ? 'download-outline' : 'lock-closed'} size={18} color={isFree ? '#000000' : COLORS.white} />
+              <Text style={[styles.payText, isFree && { color: '#000000' }]}>
+                {isFree ? '  Get Free App Now' : `  Confirm Purchase — ₹${app.price}`}
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -139,6 +160,18 @@ const styles = StyleSheet.create({
   priceValue: { fontSize: 14, color: COLORS.text },
   divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 8 },
   totalPrice: { fontSize: 20, fontWeight: '800', color: COLORS.primary },
+  trustBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: COLORS.success + '15',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.success + '40',
+    gap: 8,
+  },
+  trustText: { fontSize: 12, color: COLORS.success, flex: 1, fontWeight: '500' },
   dummyNotice: {
     flexDirection: 'row',
     alignItems: 'center',

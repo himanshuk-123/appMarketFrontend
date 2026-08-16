@@ -9,3 +9,5 @@ export const addScreenshot = (appId, imageUrl, sortOrder) =>
   client.post(`/apps/${appId}/screenshots`, { imageUrl, sortOrder });
 export const deleteScreenshot = (appId, screenshotId) =>
   client.delete(`/apps/${appId}/screenshots/${screenshotId}`);
+export const addAppReview = (appId, rating, comment) =>
+  client.post(`/apps/${appId}/reviews`, { rating, comment });

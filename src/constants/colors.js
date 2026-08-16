@@ -15,4 +15,7 @@ export const COLORS = {
   white: '#FFFFFF',
   black: '#000000',
   overlay: 'rgba(0,0,0,0.6)',
+  whatsapp: '#25D366',
+  whatsappDark: '#128C7E',
+  freeAccent: '#00E676',
 };
