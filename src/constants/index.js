@@ -1,7 +1,7 @@
 export { COLORS } from './colors';
 
-// export const API_BASE_URL = 'https://appmarketbackend.onrender.com/api';
-export const API_BASE_URL = 'http://192.168.1.7:5000/api';
+// export const API_BASE_URL = 'https://AppMarketbackend.onrender.com/api';
+export const API_BASE_URL = 'http://192.168.1.5:5000/api';
 
 export const CATEGORIES = [
   { id: 'all', label: 'All' },
