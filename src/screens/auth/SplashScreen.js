@@ -2,8 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function SplashScreen() {
+  const { theme } = useTheme();
   const badgeScale = useRef(new Animated.Value(0.6)).current;
   const badgeOpacity = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
@@ -76,33 +78,33 @@ export default function SplashScreen() {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Soft glow behind the logo */}
-      <View style={styles.glow} />
+      <View style={[styles.glow, { backgroundColor: theme.primary }]} />
 
       <Animated.View
         style={[
           styles.badge,
-          { opacity: badgeOpacity, transform: [{ scale: badgeScale }] },
+          { backgroundColor: theme.primary, shadowColor: theme.primary, opacity: badgeOpacity, transform: [{ scale: badgeScale }] },
         ]}
       >
-        <Ionicons name="storefront" size={48} color={COLORS.white} />
+        <Ionicons name="storefront" size={48} color="#FFFFFF" />
       </Animated.View>
 
       <Animated.View
         style={{ opacity: textOpacity, transform: [{ translateY: textShift }], alignItems: 'center' }}
       >
-        <Text style={styles.logo}>
-          App<Text style={{ color: COLORS.secondary }}>ure</Text>
+        <Text style={[styles.logo, { color: theme.text }]}>
+          App<Text style={{ color: theme.secondary }}>ure</Text>
         </Text>
-        <Text style={styles.tagline}>Ready-made apps, instantly yours</Text>
+        <Text style={[styles.tagline, { color: theme.textSecondary }]}>Ready-made apps, instantly yours</Text>
       </Animated.View>
 
       {/* Loading dots */}
       <View style={styles.dots}>
-        <Animated.View style={[styles.dot, dotStyle(0)]} />
-        <Animated.View style={[styles.dot, dotStyle(1)]} />
-        <Animated.View style={[styles.dot, dotStyle(2)]} />
+        <Animated.View style={[styles.dot, { backgroundColor: theme.primary }, dotStyle(0)]} />
+        <Animated.View style={[styles.dot, { backgroundColor: theme.primary }, dotStyle(1)]} />
+        <Animated.View style={[styles.dot, { backgroundColor: theme.primary }, dotStyle(2)]} />
       </View>
     </View>
   );

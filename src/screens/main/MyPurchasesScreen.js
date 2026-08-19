@@ -4,11 +4,12 @@ import {
   StyleSheet, ActivityIndicator, Alert, Image, Linking,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-
-const FALLBACK_IMG = require('../../../assets/AppMarketIcon.png');
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
 import { getMyPurchases, getDownloadLinks } from '../../api/purchases';
+import { useTheme } from '../../context/ThemeContext';
+
+const FALLBACK_IMG = require('../../../assets/AppMarketIcon.png');
 
 function DownloadButton({ icon, label, color, onPress }) {
   return (
@@ -19,18 +20,18 @@ function DownloadButton({ icon, label, color, onPress }) {
   );
 }
 
-function PurchasedAppCard({ purchase, onDownload }) {
+function PurchasedAppCard({ purchase, onDownload, theme }) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
       <View style={styles.cardHeader}>
         <Image
           source={purchase.app?.thumbnail ? { uri: purchase.app.thumbnail } : FALLBACK_IMG}
-          style={styles.thumb}
+          style={[styles.thumb, { backgroundColor: theme.surface }]}
         />
         <View style={{ flex: 1 }}>
-          <Text style={styles.appName}>{purchase.app?.name}</Text>
-          <Text style={styles.appCategory}>{purchase.app?.category}</Text>
-          <Text style={styles.purchaseDate}>
+          <Text style={[styles.appName, { color: theme.text }]}>{purchase.app?.name}</Text>
+          <Text style={[styles.appCategory, { color: theme.textSecondary }]}>{purchase.app?.category}</Text>
+          <Text style={[styles.purchaseDate, { color: theme.textMuted }]}>
             Purchased on {new Date(purchase.purchasedAt).toLocaleDateString()}
           </Text>
         </View>
@@ -39,19 +40,19 @@ function PurchasedAppCard({ purchase, onDownload }) {
         <DownloadButton
           icon="phone-portrait-outline"
           label="APK"
-          color={COLORS.success}
+          color={theme.success}
           onPress={() => onDownload(purchase.appId, 'apk')}
         />
         <DownloadButton
           icon="cube-outline"
           label="AAB"
-          color={COLORS.warning}
+          color={theme.warning}
           onPress={() => onDownload(purchase.appId, 'aab')}
         />
         <DownloadButton
           icon="code-slash-outline"
           label="Source Code"
-          color={COLORS.primary}
+          color={theme.primary}
           onPress={() => onDownload(purchase.appId, 'code')}
         />
       </View>
@@ -60,6 +61,7 @@ function PurchasedAppCard({ purchase, onDownload }) {
 }
 
 export default function MyPurchasesScreen({ navigation }) {
+  const { theme } = useTheme();
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -74,8 +76,6 @@ export default function MyPurchasesScreen({ navigation }) {
     }
   }, []);
 
-  // Refetch every time the tab is focused, so a fresh purchase shows up
-  // immediately without needing to log out and back in.
   useFocusEffect(
     useCallback(() => {
       fetchPurchases();
@@ -103,30 +103,30 @@ export default function MyPurchasesScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Apps</Text>
-        <Text style={styles.headerSub}>{purchases.length} purchased</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>My Apps</Text>
+        <Text style={[styles.headerSub, { color: theme.textSecondary }]}>{purchases.length} purchased</Text>
       </View>
 
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={COLORS.primary} size="large" />
+          <ActivityIndicator color={theme.primary} size="large" />
         </View>
       ) : (
         <FlatList
           data={purchases}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <PurchasedAppCard purchase={item} onDownload={handleDownload} />
+            <PurchasedAppCard purchase={item} onDownload={handleDownload} theme={theme} />
           )}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <View style={styles.centered}>
-              <Ionicons name="bag-handle-outline" size={48} color={COLORS.textMuted} />
-              <Text style={styles.emptyText}>No purchases yet</Text>
+              <Ionicons name="bag-handle-outline" size={48} color={theme.textMuted} />
+              <Text style={[styles.emptyText, { color: theme.textMuted }]}>No purchases yet</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-                <Text style={styles.exploreLink}>Explore apps</Text>
+                <Text style={[styles.exploreLink, { color: theme.primary }]}>Explore apps</Text>
               </TouchableOpacity>
             </View>
           }

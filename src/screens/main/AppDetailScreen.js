@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
 import { getAppById, addAppReview } from '../../api/apps';
 import { getMyPurchases } from '../../api/purchases';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 const FALLBACK_IMG = require('../../../assets/AppMarketIcon.png');
@@ -28,17 +29,12 @@ function MediaViewer({ visible, items, startIndex, onClose }) {
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <StatusBar hidden />
       <View style={ms.container}>
-        {/* Close button */}
+        <StatusBar hidden />
         <TouchableOpacity style={ms.closeBtn} onPress={onClose}>
-          <Ionicons name="close" size={28} color="#fff" />
+          <Ionicons name="close" size={24} color="#fff" />
         </TouchableOpacity>
-
-        {/* Counter */}
         <Text style={ms.counter}>{current + 1} / {items.length}</Text>
-
-        {/* Media */}
         <FlatList
           ref={flatRef}
           data={items}
@@ -46,42 +42,34 @@ function MediaViewer({ visible, items, startIndex, onClose }) {
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           initialScrollIndex={startIndex}
-          getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
+          getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
           onMomentumScrollEnd={(e) => {
-            const index = Math.round(e.nativeEvent.contentOffset.x / width);
-            setCurrent(index);
+            const idx = Math.round(e.nativeEvent.contentOffset.x / width);
+            setCurrent(idx);
           }}
           keyExtractor={(_, i) => i.toString()}
-          renderItem={({ item: mediaItem }) => (
+          renderItem={({ item: mItem }) => (
             <View style={ms.slide}>
-              {mediaItem.type === 'video' ? (
+              {mItem.type === 'video' ? (
                 <Video
                   ref={videoRef}
-                  source={{ uri: mediaItem.uri }}
+                  source={{ uri: mItem.uri }}
                   style={ms.video}
-                  resizeMode={ResizeMode.CONTAIN}
                   useNativeControls
+                  resizeMode={ResizeMode.CONTAIN}
                   shouldPlay
                 />
               ) : (
-                <Image
-                  source={{ uri: mediaItem.uri }}
-                  style={ms.image}
-                  resizeMode="contain"
-                />
+                <Image source={{ uri: mItem.uri }} style={ms.image} resizeMode="contain" />
               )}
             </View>
           )}
         />
-
-        {/* Dots */}
-        {items.length > 1 && (
-          <View style={ms.dots}>
-            {items.map((_, i) => (
-              <View key={i} style={[ms.dot, i === current && ms.dotActive]} />
-            ))}
-          </View>
-        )}
+        <View style={ms.dots}>
+          {items.map((_, i) => (
+            <View key={i} style={[ms.dot, i === current && ms.dotActive]} />
+          ))}
+        </View>
       </View>
     </Modal>
   );
@@ -89,6 +77,7 @@ function MediaViewer({ visible, items, startIndex, onClose }) {
 
 export default function AppDetailScreen({ route, navigation }) {
   const { appId } = route.params;
+  const { theme } = useTheme();
   const [app, setApp] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPurchased, setIsPurchased] = useState(false);
@@ -163,7 +152,7 @@ export default function AppDetailScreen({ route, navigation }) {
 
   const handleWhatsAppSupport = () => {
     const message = encodeURIComponent(`Hi! I have a question about the app "${app.name}" on Appure.`);
-    const phone = '919999999999';
+    const phone = '918468087211';
     const url = `whatsapp://send?phone=${phone}&text=${message}`;
     Linking.canOpenURL(url).then((supported) => {
       if (supported) {
@@ -179,11 +168,11 @@ export default function AppDetailScreen({ route, navigation }) {
   const isFree = Number(app.price) === 0;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Back button */}
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.text} />
+          <Ionicons name="arrow-back" size={22} color={theme.text} />
         </TouchableOpacity>
 
         {/* Media carousel (screenshots + video thumbnails) */}
@@ -222,24 +211,24 @@ export default function AppDetailScreen({ route, navigation }) {
         )}
 
         {mediaItems.length > 0 && (
-          <Text style={styles.tapHint}>Tap to view full screen</Text>
+          <Text style={[styles.tapHint, { color: theme.textMuted }]}>Tap to view full screen</Text>
         )}
 
         {/* App info */}
         <View style={styles.body}>
           <View style={styles.titleRow}>
-            <View style={styles.appIcon}>
+            <View style={[styles.appIcon, { backgroundColor: theme.surface }]}>
               <Image source={app.thumbnail ? { uri: app.thumbnail } : FALLBACK_IMG} style={styles.iconImg} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.appName}>{app.name}</Text>
+              <Text style={[styles.appName, { color: theme.text }]}>{app.name}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryText}>{app.category}</Text>
+                <View style={[styles.categoryBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={[styles.categoryText, { color: theme.textSecondary }]}>{app.category}</Text>
                 </View>
                 {isFree && (
-                  <View style={styles.freeDetailBadge}>
-                    <Text style={styles.freeDetailText}>FREE STARTER APP</Text>
+                  <View style={[styles.freeDetailBadge, { backgroundColor: (theme.freeAccent || '#00E676') + '20', borderColor: theme.freeAccent || '#00E676' }]}>
+                    <Text style={[styles.freeDetailText, { color: theme.freeAccent || '#00E676' }]}>FREE STARTER APP</Text>
                   </View>
                 )}
               </View>
@@ -247,126 +236,126 @@ export default function AppDetailScreen({ route, navigation }) {
           </View>
 
           {/* Rating & Downloads Stats Bar */}
-          <View style={styles.statsBar}>
+          <View style={[styles.statsBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.statChip}>
-              <Ionicons name="star" size={15} color={COLORS.warning} />
-              <Text style={styles.statVal}>{app.averageRating ? Number(app.averageRating).toFixed(1) : '4.9'}</Text>
-              <Text style={styles.statSub}>({app.totalReviews || app.reviews?.length || 0} reviews)</Text>
+              <Ionicons name="star" size={15} color={theme.warning} />
+              <Text style={[styles.statVal, { color: theme.text }]}>{app.averageRating ? Number(app.averageRating).toFixed(1) : '4.9'}</Text>
+              <Text style={[styles.statSub, { color: theme.textSecondary }]}>({app.totalReviews || app.reviews?.length || 0} reviews)</Text>
             </View>
-            <View style={styles.statDivider} />
+            <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
             <View style={styles.statChip}>
-              <Ionicons name="cloud-download-outline" size={15} color={COLORS.primary} />
-              <Text style={styles.statVal}>{app.downloadsCount || 12}</Text>
-              <Text style={styles.statSub}>downloads</Text>
+              <Ionicons name="cloud-download-outline" size={15} color={theme.primary} />
+              <Text style={[styles.statVal, { color: theme.text }]}>{app.downloadsCount || 12}</Text>
+              <Text style={[styles.statSub, { color: theme.textSecondary }]}>downloads</Text>
             </View>
           </View>
 
           {/* Live Preview */}
           {app.livePreviewUrl ? (
             <TouchableOpacity
-              style={styles.previewBtn}
+              style={[styles.previewBtn, { backgroundColor: theme.primary + '15', borderColor: theme.primary + '50' }]}
               activeOpacity={0.85}
               onPress={() => navigation.navigate('LivePreview', { url: app.livePreviewUrl, name: app.name })}
             >
-              <Ionicons name="play-circle" size={22} color={COLORS.primary} />
+              <Ionicons name="play-circle" size={22} color={theme.primary} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.previewBtnText}>Try Live Preview</Text>
-                <Text style={styles.previewBtnHint}>Tap through the app live before buying</Text>
+                <Text style={[styles.previewBtnText, { color: theme.primary }]}>Try Live Preview</Text>
+                <Text style={[styles.previewBtnHint, { color: theme.textSecondary }]}>Tap through the app live before buying</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
+              <Ionicons name="chevron-forward" size={18} color={theme.primary} />
             </TouchableOpacity>
           ) : null}
 
           {/* What you get */}
-          <View style={styles.perksRow}>
+          <View style={[styles.perksRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             {[
               { icon: 'code-slash', label: 'Source Code' },
               { icon: 'phone-portrait', label: 'APK File' },
               { icon: 'cube', label: 'AAB File' },
             ].map((perk) => (
               <View style={styles.perk} key={perk.label}>
-                <Ionicons name={perk.icon} size={20} color={COLORS.primary} />
-                <Text style={styles.perkLabel}>{perk.label}</Text>
+                <Ionicons name={perk.icon} size={20} color={theme.primary} />
+                <Text style={[styles.perkLabel, { color: theme.textSecondary }]}>{perk.label}</Text>
               </View>
             ))}
           </View>
 
-          <Text style={styles.sectionTitle}>About this app</Text>
-          <Text style={styles.description}>{app.description}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>About this app</Text>
+          <Text style={[styles.description, { color: theme.textSecondary }]}>{app.description}</Text>
 
           {/* Trust & Guarantee Card */}
-          <View style={styles.guaranteeCard}>
+          <View style={[styles.guaranteeCard, { backgroundColor: theme.surface, borderColor: theme.success + '40' }]}>
             <View style={styles.guaranteeHeader}>
-              <Ionicons name="shield-checkmark" size={22} color={COLORS.success} />
-              <Text style={styles.guaranteeTitle}>100% Verified Code & Guarantee</Text>
+              <Ionicons name="shield-checkmark" size={22} color={theme.success} />
+              <Text style={[styles.guaranteeTitle, { color: theme.text }]}>100% Verified Code & Guarantee</Text>
             </View>
             <View style={styles.guaranteeList}>
               <View style={styles.guaranteeItem}>
-                <Ionicons name="checkmark" size={14} color={COLORS.success} />
-                <Text style={styles.guaranteeItemText}>Tested & Virus-Free Clean Source Code</Text>
+                <Ionicons name="checkmark" size={14} color={theme.success} />
+                <Text style={[styles.guaranteeItemText, { color: theme.textSecondary }]}>Tested & Virus-Free Clean Source Code</Text>
               </View>
               <View style={styles.guaranteeItem}>
-                <Ionicons name="checkmark" size={14} color={COLORS.success} />
-                <Text style={styles.guaranteeItemText}>Instant Access to APK, AAB & Source Files</Text>
+                <Ionicons name="checkmark" size={14} color={theme.success} />
+                <Text style={[styles.guaranteeItemText, { color: theme.textSecondary }]}>Instant Access to APK, AAB & Source Files</Text>
               </View>
               <View style={styles.guaranteeItem}>
-                <Ionicons name="checkmark" size={14} color={COLORS.success} />
-                <Text style={styles.guaranteeItemText}>Full Commercial License Included</Text>
+                <Ionicons name="checkmark" size={14} color={theme.success} />
+                <Text style={[styles.guaranteeItemText, { color: theme.textSecondary }]}>Full Commercial License Included</Text>
               </View>
             </View>
           </View>
 
           {/* Direct WhatsApp Support Button */}
-          <TouchableOpacity style={styles.whatsappBtn} activeOpacity={0.85} onPress={handleWhatsAppSupport}>
+          <TouchableOpacity style={[styles.whatsappBtn, { backgroundColor: theme.whatsapp || '#25D366' }]} activeOpacity={0.85} onPress={handleWhatsAppSupport}>
             <Ionicons name="logo-whatsapp" size={20} color="#FFFFFF" />
             <Text style={styles.whatsappBtnText}>Chat on WhatsApp for Help & Support</Text>
           </TouchableOpacity>
 
           {/* Customer Reviews Section */}
           <View style={styles.reviewsHeaderRow}>
-            <Text style={styles.sectionTitle}>Customer Reviews</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Customer Reviews</Text>
             {isPurchased && (
-              <TouchableOpacity style={styles.writeReviewBtn} onPress={() => setReviewModalVisible(true)}>
-                <Ionicons name="create-outline" size={14} color={COLORS.primary} />
-                <Text style={styles.writeReviewText}>Write Review</Text>
+              <TouchableOpacity style={[styles.writeReviewBtn, { backgroundColor: theme.primary + '18' }]} onPress={() => setReviewModalVisible(true)}>
+                <Ionicons name="create-outline" size={14} color={theme.primary} />
+                <Text style={[styles.writeReviewText, { color: theme.primary }]}>Write Review</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {app.reviews && app.reviews.length > 0 ? (
             app.reviews.map((rev) => (
-              <View key={rev.id} style={styles.reviewCard}>
+              <View key={rev.id} style={[styles.reviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <View style={styles.reviewHeader}>
-                  <Text style={styles.reviewerName}>{rev.userName}</Text>
+                  <Text style={[styles.reviewerName, { color: theme.text }]}>{rev.userName}</Text>
                   <View style={styles.reviewStars}>
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Ionicons
                         key={star}
                         name={star <= rev.rating ? 'star' : 'star-outline'}
                         size={12}
-                        color={COLORS.warning}
+                        color={theme.warning}
                       />
                     ))}
                   </View>
                 </View>
-                {rev.comment ? <Text style={styles.reviewComment}>{rev.comment}</Text> : null}
-                <Text style={styles.reviewDate}>{new Date(rev.createdAt).toLocaleDateString()}</Text>
+                {rev.comment ? <Text style={[styles.reviewComment, { color: theme.textSecondary }]}>{rev.comment}</Text> : null}
+                <Text style={[styles.reviewDate, { color: theme.textMuted }]}>{new Date(rev.createdAt).toLocaleDateString()}</Text>
               </View>
             ))
           ) : (
-            <View style={styles.noReviewsBox}>
-              <Text style={styles.noReviewsText}>No reviews yet. Be the first to review after purchase!</Text>
+            <View style={[styles.noReviewsBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.noReviewsText, { color: theme.textMuted }]}>No reviews yet. Be the first to review after purchase!</Text>
             </View>
           )}
 
           <View style={styles.metaRow}>
-            <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Version</Text>
-              <Text style={styles.metaValue}>{app.version || '1.0.0'}</Text>
+            <View style={[styles.metaItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.metaLabel, { color: theme.textMuted }]}>Version</Text>
+              <Text style={[styles.metaValue, { color: theme.text }]}>{app.version || '1.0.0'}</Text>
             </View>
-            <View style={styles.metaItem}>
-              <Text style={styles.metaLabel}>Category</Text>
-              <Text style={styles.metaValue}>{app.category}</Text>
+            <View style={[styles.metaItem, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.metaLabel, { color: theme.textMuted }]}>Category</Text>
+              <Text style={[styles.metaValue, { color: theme.text }]}>{app.category}</Text>
             </View>
           </View>
         </View>
@@ -375,39 +364,39 @@ export default function AppDetailScreen({ route, navigation }) {
       {/* Write Review Modal */}
       <Modal visible={reviewModalVisible} transparent animationType="slide" onRequestClose={() => setReviewModalVisible(false)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Rate & Review {app.name}</Text>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Rate & Review {app.name}</Text>
               <TouchableOpacity onPress={() => setReviewModalVisible(false)}>
-                <Ionicons name="close" size={24} color={COLORS.textSecondary} />
+                <Ionicons name="close" size={24} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalLabel}>Select Star Rating</Text>
+            <Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Select Star Rating</Text>
             <View style={styles.starPicker}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity key={star} onPress={() => setUserRating(star)}>
                   <Ionicons
                     name={star <= userRating ? 'star' : 'star-outline'}
                     size={32}
-                    color={COLORS.warning}
+                    color={theme.warning}
                   />
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={styles.modalLabel}>Your Feedback (optional)</Text>
+            <Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Your Feedback (optional)</Text>
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
               placeholder="Tell us what you think of this app..."
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={theme.textMuted}
               value={userComment}
               onChangeText={setUserComment}
               multiline
               numberOfLines={4}
             />
 
-            <TouchableOpacity style={styles.submitReviewBtn} onPress={handleSubmitReview} disabled={submittingReview}>
+            <TouchableOpacity style={[styles.submitReviewBtn, { backgroundColor: theme.primary }]} onPress={handleSubmitReview} disabled={submittingReview}>
               {submittingReview ? (
                 <ActivityIndicator color="#fff" />
               ) : (
@@ -419,25 +408,25 @@ export default function AppDetailScreen({ route, navigation }) {
       </Modal>
 
       {/* Bottom CTA */}
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         {isPurchased ? (
           <TouchableOpacity
-            style={[styles.ctaBtn, { backgroundColor: COLORS.success }]}
+            style={[styles.ctaBtn, { backgroundColor: theme.success }]}
             onPress={() => navigation.navigate('MyPurchases')}
           >
-            <Ionicons name="checkmark-circle" size={20} color={COLORS.white} />
+            <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
             <Text style={styles.ctaText}>  View Downloads</Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.ctaRow}>
-            <Text style={[styles.priceTag, isFree && { color: COLORS.freeAccent || '#00E676' }]}>
+            <Text style={[styles.priceTag, { color: theme.text }, isFree && { color: theme.freeAccent || '#00E676' }]}>
               {isFree ? 'FREE' : `₹${app.price}`}
             </Text>
             <TouchableOpacity
-              style={[styles.ctaBtn, isFree && { backgroundColor: COLORS.freeAccent || '#00E676' }]}
+              style={[styles.ctaBtn, { backgroundColor: theme.primary }, isFree && { backgroundColor: theme.freeAccent || '#00E676' }]}
               onPress={() => navigation.navigate('Purchase', { app })}
             >
-              <Text style={[styles.ctaText, isFree && { color: '#000000' }]}>
+              <Text style={[styles.ctaText, { color: '#FFFFFF' }, isFree && { color: '#000000' }]}>
                 {isFree ? 'Get Free App' : 'Buy Now'}
               </Text>
             </TouchableOpacity>

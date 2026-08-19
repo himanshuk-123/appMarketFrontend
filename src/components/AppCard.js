@@ -3,17 +3,19 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants';
 import { toImageLink } from '../utils/gdrive';
+import { useTheme } from '../context/ThemeContext';
 
-function PreviewBadge() {
+function PreviewBadge({ theme }) {
   return (
-    <View style={styles.previewBadge}>
-      <Ionicons name="play" size={9} color={COLORS.white} />
-      <Text style={styles.previewBadgeText}>Preview</Text>
+    <View style={[styles.previewBadge, { backgroundColor: theme.primary }]}>
+      <Ionicons name="play" size={9} color={theme.white} />
+      <Text style={[styles.previewBadgeText, { color: theme.white }]}>Preview</Text>
     </View>
   );
 }
 
 export default function AppCard({ app, onPress, grid }) {
+  const { theme } = useTheme();
   const thumbSource = {
     uri: toImageLink(app.thumbnail) || 'https://placehold.co/120x120/1A1A2E/6C63FF?text=App',
   };
@@ -24,33 +26,37 @@ export default function AppCard({ app, onPress, grid }) {
 
   if (grid) {
     return (
-      <TouchableOpacity style={styles.gridCard} onPress={onPress} activeOpacity={0.85}>
-        <View style={styles.gridThumbWrap}>
-          <Image source={thumbSource} style={styles.gridThumb} />
-          {hasPreview ? <PreviewBadge /> : null}
+      <TouchableOpacity
+        style={[styles.gridCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+        onPress={onPress}
+        activeOpacity={0.85}
+      >
+        <View style={[styles.gridThumbWrap, { backgroundColor: theme.surface }]}>
+          <Image source={thumbSource} style={[styles.gridThumb, { backgroundColor: theme.surface }]} />
+          {hasPreview ? <PreviewBadge theme={theme} /> : null}
           {isFree ? (
-            <View style={styles.freeBadge}>
+            <View style={[styles.freeBadge, { backgroundColor: theme.freeAccent }]}>
               <Text style={styles.freeBadgeText}>FREE</Text>
             </View>
           ) : null}
         </View>
         <View style={styles.gridInfo}>
-          <Text style={styles.name} numberOfLines={1}>{app.name}</Text>
+          <Text style={[styles.name, { color: theme.text }]} numberOfLines={1}>{app.name}</Text>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Ionicons name="star" size={11} color={COLORS.warning} />
-              <Text style={styles.statText}>{rating}</Text>
+              <Ionicons name="star" size={11} color={theme.warning} />
+              <Text style={[styles.statText, { color: theme.textSecondary }]}>{rating}</Text>
             </View>
             <View style={styles.statItem}>
-              <Ionicons name="cloud-download-outline" size={11} color={COLORS.textMuted} />
-              <Text style={styles.statText}>{downloads}</Text>
+              <Ionicons name="cloud-download-outline" size={11} color={theme.textMuted} />
+              <Text style={[styles.statText, { color: theme.textSecondary }]}>{downloads}</Text>
             </View>
           </View>
           <View style={styles.gridFooter}>
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText} numberOfLines={1}>{app.category}</Text>
+            <View style={[styles.categoryBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.categoryText, { color: theme.textSecondary }]} numberOfLines={1}>{app.category}</Text>
             </View>
-            <Text style={[styles.price, isFree && styles.freePrice]}>
+            <Text style={[styles.price, { color: theme.primary }, isFree && { color: theme.freeAccent }]}>
               {isFree ? 'FREE' : `₹${app.price}`}
             </Text>
           </View>
@@ -60,37 +66,41 @@ export default function AppCard({ app, onPress, grid }) {
   }
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}
+      onPress={onPress}
+      activeOpacity={0.85}
+    >
       <View style={styles.thumbWrap}>
-        <Image source={thumbSource} style={styles.thumbnail} />
-        {hasPreview ? <PreviewBadge /> : null}
+        <Image source={thumbSource} style={[styles.thumbnail, { backgroundColor: theme.surface }]} />
+        {hasPreview ? <PreviewBadge theme={theme} /> : null}
         {isFree ? (
-          <View style={styles.freeBadge}>
+          <View style={[styles.freeBadge, { backgroundColor: theme.freeAccent }]}>
             <Text style={styles.freeBadgeText}>FREE</Text>
           </View>
         ) : null}
       </View>
       <View style={styles.info}>
         <View>
-          <Text style={styles.name} numberOfLines={1}>{app.name}</Text>
-          <Text style={styles.desc} numberOfLines={1}>{app.description}</Text>
+          <Text style={[styles.name, { color: theme.text }]} numberOfLines={1}>{app.name}</Text>
+          <Text style={[styles.desc, { color: theme.textSecondary }]} numberOfLines={1}>{app.description}</Text>
         </View>
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
-            <Ionicons name="star" size={12} color={COLORS.warning} />
-            <Text style={styles.statText}>{rating}</Text>
+            <Ionicons name="star" size={12} color={theme.warning} />
+            <Text style={[styles.statText, { color: theme.textSecondary }]}>{rating}</Text>
           </View>
-          <Text style={styles.dotSeparator}>•</Text>
+          <Text style={[styles.dotSeparator, { color: theme.textMuted }]}>•</Text>
           <View style={styles.statItem}>
-            <Ionicons name="cloud-download-outline" size={12} color={COLORS.textMuted} />
-            <Text style={styles.statText}>{downloads} downloads</Text>
+            <Ionicons name="cloud-download-outline" size={12} color={theme.textMuted} />
+            <Text style={[styles.statText, { color: theme.textSecondary }]}>{downloads} downloads</Text>
           </View>
         </View>
         <View style={styles.footer}>
-          <View style={styles.categoryBadge}>
-            <Text style={styles.categoryText}>{app.category}</Text>
+          <View style={[styles.categoryBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.categoryText, { color: theme.textSecondary }]}>{app.category}</Text>
           </View>
-          <Text style={[styles.price, isFree && styles.freePrice]}>
+          <Text style={[styles.price, { color: theme.primary }, isFree && { color: theme.freeAccent }]}>
             {isFree ? 'FREE' : `₹${app.price}`}
           </Text>
         </View>

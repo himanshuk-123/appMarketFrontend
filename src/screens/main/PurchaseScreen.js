@@ -6,11 +6,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
 import { purchaseApp } from '../../api/purchases';
+import { useTheme } from '../../context/ThemeContext';
 
 const FALLBACK_IMG = require('../../../assets/AppMarketIcon.png');
 
 export default function PurchaseScreen({ route, navigation }) {
   const { app } = route.params;
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const isFree = Number(app.price) === 0;
 
@@ -31,89 +33,89 @@ export default function PurchaseScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={22} color={COLORS.text} />
+        <Ionicons name="arrow-back" size={22} color={theme.text} />
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Order Summary</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Order Summary</Text>
 
         {/* App preview */}
-        <View style={styles.appCard}>
+        <View style={[styles.appCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Image
             source={app.thumbnail ? { uri: app.thumbnail } : FALLBACK_IMG}
-            style={styles.appThumb}
+            style={[styles.appThumb, { backgroundColor: theme.surface }]}
           />
           <View style={{ flex: 1 }}>
-            <Text style={styles.appName}>{app.name}</Text>
-            <Text style={styles.appCategory}>{app.category}</Text>
+            <Text style={[styles.appName, { color: theme.text }]}>{app.name}</Text>
+            <Text style={[styles.appCategory, { color: theme.textSecondary }]}>{app.category}</Text>
           </View>
         </View>
 
         {/* What you get */}
-        <Text style={styles.sectionTitle}>What's included</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>What's included</Text>
         {[
-          { icon: 'code-slash-outline', text: 'Full Source Code (ZIP)', color: COLORS.primary },
-          { icon: 'phone-portrait-outline', text: 'APK File (Android Install)', color: COLORS.success },
-          { icon: 'cube-outline', text: 'AAB File (Play Store Ready)', color: COLORS.warning },
-          { icon: 'infinite-outline', text: 'Lifetime Access & Commercial License', color: COLORS.secondary },
+          { icon: 'code-slash-outline', text: 'Full Source Code (ZIP)', color: theme.primary },
+          { icon: 'phone-portrait-outline', text: 'APK File (Android Install)', color: theme.success },
+          { icon: 'cube-outline', text: 'AAB File (Play Store Ready)', color: theme.warning },
+          { icon: 'infinite-outline', text: 'Lifetime Access & Commercial License', color: theme.secondary },
         ].map((item) => (
           <View style={styles.includeRow} key={item.text}>
             <View style={[styles.includeIcon, { backgroundColor: item.color + '22' }]}>
               <Ionicons name={item.icon} size={18} color={item.color} />
             </View>
-            <Text style={styles.includeText}>{item.text}</Text>
+            <Text style={[styles.includeText, { color: theme.text }]}>{item.text}</Text>
           </View>
         ))}
 
         {/* Price breakdown */}
-        <View style={styles.priceBox}>
+        <View style={[styles.priceBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>App Price</Text>
-            <Text style={[styles.priceValue, isFree && { color: COLORS.freeAccent || '#00E676', fontWeight: '700' }]}>
+            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>App Price</Text>
+            <Text style={[styles.priceValue, { color: theme.text }, isFree && { color: theme.freeAccent, fontWeight: '700' }]}>
               {isFree ? 'FREE' : `₹${app.price}`}
             </Text>
           </View>
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
           <View style={styles.priceRow}>
-            <Text style={[styles.priceLabel, { fontWeight: '700', color: COLORS.text }]}>Total</Text>
-            <Text style={[styles.totalPrice, isFree && { color: COLORS.freeAccent || '#00E676' }]}>
+            <Text style={[styles.priceLabel, { fontWeight: '700', color: theme.text }]}>Total</Text>
+            <Text style={[styles.totalPrice, { color: theme.primary }, isFree && { color: theme.freeAccent }]}>
               {isFree ? 'FREE' : `₹${app.price}`}
             </Text>
           </View>
         </View>
 
         {/* Trust Guarantee Notice */}
-        <View style={styles.trustBox}>
-          <Ionicons name="shield-checkmark-outline" size={18} color={COLORS.success} />
-          <Text style={styles.trustText}>
+        <View style={[styles.trustBox, { backgroundColor: theme.success + '15', borderColor: theme.success + '40' }]}>
+          <Ionicons name="shield-checkmark-outline" size={18} color={theme.success} />
+          <Text style={[styles.trustText, { color: theme.success }]}>
             100% Guaranteed Working Code. Instant delivery to My Apps tab.
           </Text>
         </View>
 
         {/* Payment note for non-free apps */}
         {!isFree && (
-          <View style={styles.dummyNotice}>
-            <Ionicons name="information-circle-outline" size={16} color={COLORS.warning} />
-            <Text style={styles.dummyText}>  Demo mode — payment gateway integration active</Text>
+          <View style={[styles.dummyNotice, { backgroundColor: theme.warning + '15', borderColor: theme.warning + '40' }]}>
+            <Ionicons name="information-circle-outline" size={16} color={theme.warning} />
+            <Text style={[styles.dummyText, { color: theme.warning }]}>  Demo mode — payment gateway integration active</Text>
           </View>
         )}
       </ScrollView>
 
       {/* CTA */}
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
         <TouchableOpacity
-          style={[styles.payBtn, isFree && { backgroundColor: COLORS.freeAccent || '#00E676' }]}
+          style={[styles.payBtn, { backgroundColor: theme.primary }, isFree && { backgroundColor: theme.freeAccent }]}
           onPress={handlePurchase}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color={isFree ? '#000000' : COLORS.white} />
+            <ActivityIndicator color={isFree ? '#000000' : '#FFFFFF'} />
           ) : (
             <>
-              <Ionicons name={isFree ? 'download-outline' : 'lock-closed'} size={18} color={isFree ? '#000000' : COLORS.white} />
-              <Text style={[styles.payText, isFree && { color: '#000000' }]}>
+              <Ionicons name={isFree ? 'download-outline' : 'lock-closed'} size={18} color={isFree ? '#000000' : '#FFFFFF'} />
+              <Text style={[styles.payText, { color: '#FFFFFF' }, isFree && { color: '#000000' }]}>
                 {isFree ? '  Get Free App Now' : `  Confirm Purchase — ₹${app.price}`}
               </Text>
             </>

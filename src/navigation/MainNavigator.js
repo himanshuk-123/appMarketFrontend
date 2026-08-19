@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../constants';
+import { useTheme } from '../context/ThemeContext';
 
 import HomeScreen from '../screens/main/HomeScreen';
 import AppDetailScreen from '../screens/main/AppDetailScreen';
@@ -12,6 +12,7 @@ import MyPurchasesScreen from '../screens/main/MyPurchasesScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 import AboutScreen from '../screens/main/AboutScreen';
 import LivePreviewScreen from '../screens/main/LivePreviewScreen';
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -45,29 +46,29 @@ function ProfileStack() {
   );
 }
 
-const TAB_BAR_STYLE = {
-  backgroundColor: COLORS.surface,
-  borderTopColor: COLORS.border,
-};
-
-// Live Preview runs full screen — hide the tab bar so the previewed app
-// fills the whole display and feels like a real standalone app.
-const tabBarVisibility = ({ route }) => {
-  const focused = getFocusedRouteNameFromRoute(route);
-  return {
-    tabBarStyle: focused === 'LivePreview' ? { display: 'none' } : TAB_BAR_STYLE,
-  };
-};
-
 export default function MainNavigator() {
+  const { theme } = useTheme();
+
+  const tabBarBarStyle = {
+    backgroundColor: theme.surface,
+    borderTopColor: theme.border,
+  };
+
+  const getTabBarOptions = (route) => {
+    const focused = getFocusedRouteNameFromRoute(route);
+    return {
+      tabBarStyle: focused === 'LivePreview' ? { display: 'none' } : tabBarBarStyle,
+    };
+  };
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: TAB_BAR_STYLE,
+        tabBarStyle: tabBarBarStyle,
         tabBarItemStyle: { paddingVertical: 4 },
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.textMuted,
         tabBarIcon: ({ color, size }) => {
           const icons = {
             Home: 'home',
@@ -81,12 +82,12 @@ export default function MainNavigator() {
       <Tab.Screen
         name="Home"
         component={HomeStack}
-        options={(props) => ({ tabBarLabel: 'Explore', ...tabBarVisibility(props) })}
+        options={(props) => ({ tabBarLabel: 'Explore', ...getTabBarOptions(props.route) })}
       />
       <Tab.Screen
         name="MyPurchases"
         component={PurchasesStack}
-        options={(props) => ({ tabBarLabel: 'My Apps', ...tabBarVisibility(props) })}
+        options={(props) => ({ tabBarLabel: 'My Apps', ...getTabBarOptions(props.route) })}
       />
       <Tab.Screen name="Profile" component={ProfileStack} />
     </Tab.Navigator>

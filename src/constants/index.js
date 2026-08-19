@@ -1,4 +1,6 @@
-export { COLORS } from './colors';
+import COLORS, { DARK_COLORS, LIGHT_COLORS } from './colors';
+
+export { COLORS, DARK_COLORS, LIGHT_COLORS };
 
 // export const API_BASE_URL = 'https://AppMarketbackend.onrender.com/api';
 export const API_BASE_URL = 'http://192.168.1.5:5000/api';
@@ -19,3 +21,5 @@ export const FONTS = {
   medium: 'System',
   bold: 'System',
 };
+
+export default COLORS;

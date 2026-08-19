@@ -8,9 +8,11 @@ import { COLORS, CATEGORIES } from '../../constants';
 import { getApps } from '../../api/apps';
 import AppCard from '../../components/AppCard';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function HomeScreen({ navigation }) {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -44,22 +46,22 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Hello, {user?.name?.split(' ')[0]} 👋</Text>
-          <Text style={styles.headerTitle}>Explore Apps</Text>
+          <Text style={[styles.greeting, { color: theme.textSecondary }]}>Hello, {user?.name?.split(' ')[0]} 👋</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Explore Apps</Text>
         </View>
       </View>
 
       {/* Search */}
-      <View style={styles.searchRow}>
-        <Ionicons name="search" size={18} color={COLORS.textMuted} style={styles.searchIcon} />
+      <View style={[styles.searchRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Ionicons name="search" size={18} color={theme.textMuted} style={styles.searchIcon} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: theme.text }]}
           placeholder="Search apps..."
-          placeholderTextColor={COLORS.textMuted}
+          placeholderTextColor={theme.textMuted}
           value={search}
           onChangeText={setSearch}
         />
@@ -72,34 +74,47 @@ export default function HomeScreen({ navigation }) {
         style={styles.categoriesScroll}
         contentContainerStyle={styles.categoriesContent}
       >
-        {CATEGORIES.map((cat) => (
-          <TouchableOpacity
-            key={cat.id}
-            style={[styles.catChip, selectedCategory === cat.id && styles.catChipActive]}
-            onPress={() => setSelectedCategory(cat.id)}
-          >
-            <Text style={[styles.catText, selectedCategory === cat.id && styles.catTextActive]}>
-              {cat.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {CATEGORIES.map((cat) => {
+          const active = selectedCategory === cat.id;
+          return (
+            <TouchableOpacity
+              key={cat.id}
+              style={[
+                styles.catChip,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                active && { backgroundColor: theme.primary, borderColor: theme.primary }
+              ]}
+              onPress={() => setSelectedCategory(cat.id)}
+            >
+              <Text
+                style={[
+                  styles.catText,
+                  { color: theme.textSecondary },
+                  active && { color: '#FFFFFF' }
+                ]}
+              >
+                {cat.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       {/* Toolbar: result count + list/grid toggle */}
       <View style={styles.toolbar}>
-        <Text style={styles.resultCount}>{apps.length} apps</Text>
-        <View style={styles.toggleGroup}>
+        <Text style={[styles.resultCount, { color: theme.textSecondary }]}>{apps.length} apps</Text>
+        <View style={[styles.toggleGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity
-            style={[styles.toggleBtn, !isGrid && styles.toggleBtnActive]}
+            style={[styles.toggleBtn, !isGrid && { backgroundColor: theme.primary }]}
             onPress={() => setViewMode('list')}
           >
-            <Ionicons name="list" size={18} color={!isGrid ? COLORS.white : COLORS.textMuted} />
+            <Ionicons name="list" size={18} color={!isGrid ? '#FFFFFF' : theme.textMuted} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.toggleBtn, isGrid && styles.toggleBtnActive]}
+            style={[styles.toggleBtn, isGrid && { backgroundColor: theme.primary }]}
             onPress={() => setViewMode('grid')}
           >
-            <Ionicons name="grid" size={16} color={isGrid ? COLORS.white : COLORS.textMuted} />
+            <Ionicons name="grid" size={16} color={isGrid ? '#FFFFFF' : theme.textMuted} />
           </TouchableOpacity>
         </View>
       </View>
@@ -107,7 +122,7 @@ export default function HomeScreen({ navigation }) {
       {/* App List */}
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={COLORS.primary} size="large" />
+          <ActivityIndicator color={theme.primary} size="large" />
         </View>
       ) : (
         <FlatList
@@ -124,10 +139,10 @@ export default function HomeScreen({ navigation }) {
             />
           )}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
           ListEmptyComponent={
             <View style={styles.centered}>
-              <Text style={styles.emptyText}>No apps found</Text>
+              <Text style={[styles.emptyText, { color: theme.textMuted }]}>No apps found</Text>
             </View>
           }
         />

@@ -1,4 +1,4 @@
-export const COLORS = {
+export const DARK_COLORS = {
   primary: '#6C63FF',
   primaryDark: '#4B44CC',
   secondary: '#FF6584',
@@ -19,3 +19,28 @@ export const COLORS = {
   whatsappDark: '#128C7E',
   freeAccent: '#00E676',
 };
+
+export const LIGHT_COLORS = {
+  primary: '#6C63FF',
+  primaryDark: '#4B44CC',
+  secondary: '#FF6584',
+  background: '#F5F6FA',
+  surface: '#FFFFFF',
+  card: '#FFFFFF',
+  border: '#E1E4E8',
+  text: '#1A1D20',
+  textSecondary: '#5A626A',
+  textMuted: '#8C959F',
+  success: '#2E7D32',
+  error: '#D32F2F',
+  warning: '#F57C00',
+  white: '#FFFFFF',
+  black: '#000000',
+  overlay: 'rgba(0,0,0,0.4)',
+  whatsapp: '#25D366',
+  whatsappDark: '#128C7E',
+  freeAccent: '#00C853',
+};
+
+export const COLORS = { ...DARK_COLORS };
+export default COLORS;

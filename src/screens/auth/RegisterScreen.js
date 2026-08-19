@@ -5,9 +5,11 @@ import {
 } from 'react-native';
 import { COLORS } from '../../constants';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
+  const { theme } = useTheme();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,10 +40,14 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Text style={styles.brand}>Appure</Text>
-      <Text style={styles.title}>Create account</Text>
-      <Text style={styles.subtitle}>Join thousands of users</Text>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text style={[styles.brand, { color: theme.primary }]}>Appure</Text>
+      <Text style={[styles.title, { color: theme.text }]}>Create account</Text>
+      <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Join thousands of users</Text>
 
       {[
         { label: 'Full Name', value: name, setter: setName, placeholder: 'John Doe', type: 'default' },
@@ -50,11 +56,11 @@ export default function RegisterScreen({ navigation }) {
         { label: 'Confirm Password', value: confirmPassword, setter: setConfirmPassword, placeholder: '••••••••', secure: true },
       ].map((field) => (
         <View style={styles.inputGroup} key={field.label}>
-          <Text style={styles.label}>{field.label}</Text>
+          <Text style={[styles.label, { color: theme.textSecondary }]}>{field.label}</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
             placeholder={field.placeholder}
-            placeholderTextColor={COLORS.textMuted}
+            placeholderTextColor={theme.textMuted}
             value={field.value}
             onChangeText={field.setter}
             keyboardType={field.type || 'default'}
@@ -64,18 +70,18 @@ export default function RegisterScreen({ navigation }) {
         </View>
       ))}
 
-      <TouchableOpacity style={styles.btn} onPress={handleRegister} disabled={loading}>
+      <TouchableOpacity style={[styles.btn, { backgroundColor: theme.primary }]} onPress={handleRegister} disabled={loading}>
         {loading ? (
-          <ActivityIndicator color={COLORS.white} />
+          <ActivityIndicator color="#FFFFFF" />
         ) : (
           <Text style={styles.btnText}>Create Account</Text>
         )}
       </TouchableOpacity>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Already have an account? </Text>
+        <Text style={[styles.footerText, { color: theme.textSecondary }]}>Already have an account? </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.link}>Sign in</Text>
+          <Text style={[styles.link, { color: theme.primary }]}>Sign in</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

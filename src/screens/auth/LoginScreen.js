@@ -5,9 +5,11 @@ import {
 } from 'react-native';
 import { COLORS } from '../../constants';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,17 +31,21 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Text style={styles.brand}>Appure</Text>
-      <Text style={styles.title}>Welcome back</Text>
-      <Text style={styles.subtitle}>Sign in to your account</Text>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text style={[styles.brand, { color: theme.primary }]}>Appure</Text>
+      <Text style={[styles.title, { color: theme.text }]}>Welcome back</Text>
+      <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Sign in to your account</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Email</Text>
+        <Text style={[styles.label, { color: theme.textSecondary }]}>Email</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
           placeholder="you@example.com"
-          placeholderTextColor={COLORS.textMuted}
+          placeholderTextColor={theme.textMuted}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -48,34 +54,34 @@ export default function LoginScreen({ navigation }) {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Password</Text>
+        <Text style={[styles.label, { color: theme.textSecondary }]}>Password</Text>
         <View style={styles.passwordRow}>
           <TextInput
-            style={[styles.input, { flex: 1 }]}
+            style={[styles.input, { flex: 1, backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
             placeholder="••••••••"
-            placeholderTextColor={COLORS.textMuted}
+            placeholderTextColor={theme.textMuted}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(!showPassword)}>
-            <Text style={styles.eyeText}>{showPassword ? 'Hide' : 'Show'}</Text>
+            <Text style={[styles.eyeText, { color: theme.primary }]}>{showPassword ? 'Hide' : 'Show'}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <TouchableOpacity style={styles.btn} onPress={handleLogin} disabled={loading}>
+      <TouchableOpacity style={[styles.btn, { backgroundColor: theme.primary }]} onPress={handleLogin} disabled={loading}>
         {loading ? (
-          <ActivityIndicator color={COLORS.white} />
+          <ActivityIndicator color="#FFFFFF" />
         ) : (
           <Text style={styles.btnText}>Sign In</Text>
         )}
       </TouchableOpacity>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Don't have an account? </Text>
+        <Text style={[styles.footerText, { color: theme.textSecondary }]}>Don't have an account? </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.link}>Create one</Text>
+          <Text style={[styles.link, { color: theme.primary }]}>Create one</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
