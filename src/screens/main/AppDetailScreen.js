@@ -4,6 +4,7 @@ import {
   StyleSheet, ActivityIndicator, Dimensions, Alert,
   Modal, StatusBar, FlatList, Linking, TextInput,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
@@ -24,9 +25,6 @@ function MediaViewer({ visible, items, startIndex, onClose }) {
     setCurrent(startIndex);
   }, [startIndex, visible]);
 
-  const item = items[current];
-  const isVideo = item?.type === 'video';
-
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={ms.container}>
@@ -41,26 +39,31 @@ function MediaViewer({ visible, items, startIndex, onClose }) {
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
+          keyExtractor={(_, index) => index.toString()}
           initialScrollIndex={startIndex}
-          getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+          getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
           onMomentumScrollEnd={(e) => {
             const idx = Math.round(e.nativeEvent.contentOffset.x / width);
             setCurrent(idx);
           }}
-          keyExtractor={(_, i) => i.toString()}
-          renderItem={({ item: mItem }) => (
-            <View style={ms.slide}>
-              {mItem.type === 'video' ? (
+          renderItem={({ item: m }) => (
+            <View style={{ width, height, alignItems: 'center', justifyContent: 'center' }}>
+              {m.type === 'video' ? (
                 <Video
                   ref={videoRef}
-                  source={{ uri: mItem.uri }}
-                  style={ms.video}
+                  source={{ uri: m.uri }}
+                  style={{ width, height: height * 0.6 }}
                   useNativeControls
                   resizeMode={ResizeMode.CONTAIN}
                   shouldPlay
+                  isLooping
                 />
               ) : (
-                <Image source={{ uri: mItem.uri }} style={ms.image} resizeMode="contain" />
+                <Image
+                  source={{ uri: m.uri }}
+                  style={{ width, height: height * 0.75 }}
+                  resizeMode="contain"
+                />
               )}
             </View>
           )}
@@ -77,56 +80,58 @@ function MediaViewer({ visible, items, startIndex, onClose }) {
 
 export default function AppDetailScreen({ route, navigation }) {
   const { appId } = route.params;
+  const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const [app, setApp] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPurchased, setIsPurchased] = useState(false);
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+
+  // Review modal state
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
   const [userRating, setUserRating] = useState(5);
   const [userComment, setUserComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
-    fetchAppDetails();
-  }, []);
+    loadAppDetails();
+  }, [appId]);
+
+  const loadAppDetails = async () => {
+    try {
+      setLoading(true);
+      const res = await getAppById(appId);
+      setApp(res.data.app);
+
+      // Check if logged-in user already owns this app
+      try {
+        const purchasesRes = await getMyPurchases();
+        const owned = purchasesRes.data.purchases.some((p) => p.appId === Number(appId));
+        setIsPurchased(owned);
+      } catch (e) {
+        setIsPurchased(false);
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Failed to load app details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openViewer = (index) => {
     setViewerIndex(index);
     setViewerVisible(true);
   };
 
-  const fetchAppDetails = async () => {
-    try {
-      const [appRes, purchasesRes] = await Promise.all([
-        getAppById(appId),
-        getMyPurchases(),
-      ]);
-      setApp(appRes.data.app);
-      const purchased = purchasesRes.data.purchases.some(
-        (p) => String(p.appId) === String(appId) && p.status === 'completed'
-      );
-      setIsPurchased(purchased);
-    } catch (err) {
-      Alert.alert('Error', err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmitReview = async () => {
-    if (!userRating || userRating < 1 || userRating > 5) {
-      Alert.alert('Rating Required', 'Please select a rating between 1 and 5 stars');
-      return;
-    }
     setSubmittingReview(true);
     try {
-      await addAppReview(appId, userRating, userComment);
-      Alert.alert('Thank You! 🎉', 'Your review has been published.');
+      await addAppReview(appId, { rating: userRating, comment: userComment });
+      Alert.alert('Thank you! ⭐', 'Your review has been submitted.');
       setReviewModalVisible(false);
       setUserComment('');
-      fetchAppDetails();
+      loadAppDetails();
     } catch (err) {
       Alert.alert('Error', err.message);
     } finally {
@@ -136,8 +141,8 @@ export default function AppDetailScreen({ route, navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={COLORS.primary} size="large" />
+      <View style={[styles.centered, { backgroundColor: theme.background }]}>
+        <ActivityIndicator color={theme.primary} size="large" />
       </View>
     );
   }
@@ -169,55 +174,30 @@ export default function AppDetailScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Back button */}
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={22} color={theme.text} />
+      {/* Safe Area Header Bar */}
+      <View style={[styles.topHeaderBar, { paddingTop: Math.max(insets.top + 6, 44), backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <TouchableOpacity
+          style={[styles.backNavBtn, { backgroundColor: theme.background, borderColor: theme.border }]}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={20} color={theme.text} />
         </TouchableOpacity>
+        <Text style={[styles.navHeaderTitle, { color: theme.text }]} numberOfLines={1}>{app.name}</Text>
+        <TouchableOpacity
+          style={[styles.whatsappNavBtn, { backgroundColor: (theme.whatsapp || '#25D366') + '20', borderColor: (theme.whatsapp || '#25D366') + '40' }]}
+          onPress={handleWhatsAppSupport}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="logo-whatsapp" size={18} color={theme.whatsapp || '#25D366'} />
+        </TouchableOpacity>
+      </View>
 
-        {/* Media carousel (screenshots + video thumbnails) */}
-        {mediaItems.length > 0 ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.mediaScroll}>
-            {mediaItems.map((item, i) => (
-              <TouchableOpacity key={i} onPress={() => openViewer(i)} activeOpacity={0.85}>
-                <View style={styles.mediaThumb}>
-                  {item.type === 'video' ? (
-                    <>
-                      <View style={styles.videoThumbBg}>
-                        <Ionicons name="play-circle" size={44} color="#fff" />
-                        <Text style={styles.videoLabel}>Demo Video</Text>
-                      </View>
-                    </>
-                  ) : (
-                    <Image source={{ uri: item.uri }} style={styles.thumbImage} resizeMode="cover" />
-                  )}
-                  <View style={styles.thumbOverlay}>
-                    <Ionicons
-                      name={item.type === 'video' ? 'play-circle-outline' : 'expand-outline'}
-                      size={20}
-                      color="#fff"
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        ) : (
-          <Image
-            source={app.thumbnail ? { uri: app.thumbnail } : FALLBACK_IMG}
-            style={styles.fallbackImage}
-            resizeMode="cover"
-          />
-        )}
-
-        {mediaItems.length > 0 && (
-          <Text style={[styles.tapHint, { color: theme.textMuted }]}>Tap to view full screen</Text>
-        )}
-
-        {/* App info */}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
+        {/* App Hero Main Card */}
         <View style={styles.body}>
           <View style={styles.titleRow}>
-            <View style={[styles.appIcon, { backgroundColor: theme.surface }]}>
+            <View style={[styles.appIcon, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}>
               <Image source={app.thumbnail ? { uri: app.thumbnail } : FALLBACK_IMG} style={styles.iconImg} />
             </View>
             <View style={{ flex: 1 }}>
@@ -250,21 +230,62 @@ export default function AppDetailScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* Live Preview */}
+          {/* Live Preview Button */}
           {app.livePreviewUrl ? (
             <TouchableOpacity
-              style={[styles.previewBtn, { backgroundColor: theme.primary + '15', borderColor: theme.primary + '50' }]}
+              style={[styles.previewBtn, { backgroundColor: theme.primary + '18', borderColor: theme.primary + '60' }]}
               activeOpacity={0.85}
               onPress={() => navigation.navigate('LivePreview', { url: app.livePreviewUrl, name: app.name })}
             >
-              <Ionicons name="play-circle" size={22} color={theme.primary} />
+              <Ionicons name="play-circle" size={24} color={theme.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.previewBtnText, { color: theme.primary }]}>Try Live Preview</Text>
-                <Text style={[styles.previewBtnHint, { color: theme.textSecondary }]}>Tap through the app live before buying</Text>
+                <Text style={[styles.previewBtnHint, { color: theme.textSecondary }]}>Tap to test interactive app live before buying</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={theme.primary} />
             </TouchableOpacity>
           ) : null}
+
+          {/* Screenshots & Video Demo Section */}
+          <View style={{ marginTop: 20, marginBottom: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <Text style={[styles.sectionTitle, { color: theme.text, marginBottom: 0 }]}>App Screenshots & Demo</Text>
+              {mediaItems.length > 0 && (
+                <Text style={[styles.tapHint, { color: theme.textMuted, marginTop: 0, paddingHorizontal: 0 }]}>Tap to view full screen</Text>
+              )}
+            </View>
+            {mediaItems.length > 0 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.mediaScroll}>
+                {mediaItems.map((item, i) => (
+                  <TouchableOpacity key={i} onPress={() => openViewer(i)} activeOpacity={0.85}>
+                    <View style={styles.mediaThumb}>
+                      {item.type === 'video' ? (
+                        <View style={styles.videoThumbBg}>
+                          <Ionicons name="play-circle" size={44} color="#fff" />
+                          <Text style={styles.videoLabel}>Demo Video</Text>
+                        </View>
+                      ) : (
+                        <Image source={{ uri: item.uri }} style={styles.thumbImage} resizeMode="cover" />
+                      )}
+                      <View style={styles.thumbOverlay}>
+                        <Ionicons
+                          name={item.type === 'video' ? 'play-circle-outline' : 'expand-outline'}
+                          size={20}
+                          color="#fff"
+                        />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            ) : (
+              <Image
+                source={app.thumbnail ? { uri: app.thumbnail } : FALLBACK_IMG}
+                style={styles.fallbackImage}
+                resizeMode="cover"
+              />
+            )}
+          </View>
 
           {/* What you get */}
           <View style={[styles.perksRow, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -448,14 +469,37 @@ export default function AppDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.background },
-  backBtn: {
-    position: 'absolute',
-    top: 50,
-    left: 16,
-    zIndex: 10,
-    backgroundColor: COLORS.overlay,
-    borderRadius: 20,
-    padding: 8,
+  topHeaderBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    zIndex: 20,
+  },
+  backNavBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 10,
+  },
+  whatsappNavBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   mediaScroll: { paddingTop: 10, paddingLeft: 16, paddingBottom: 4 },
   mediaThumb: {

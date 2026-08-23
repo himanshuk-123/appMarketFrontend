@@ -19,6 +19,7 @@ export default function HomeScreen({ navigation }) {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'grid'
+  const [catLoading, setCatLoading] = useState(false);
   const isGrid = viewMode === 'grid';
 
   const fetchApps = useCallback(async () => {
@@ -38,6 +39,7 @@ export default function HomeScreen({ navigation }) {
       Alert.alert('Error', err.message || 'Failed to load apps. Check your connection.');
     } finally {
       setLoading(false);
+      setCatLoading(false);
       setRefreshing(false);
     }
   }, [search, selectedCategory]);
@@ -45,6 +47,12 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     fetchApps();
   }, [fetchApps]);
+
+  const handleCategorySelect = (catId) => {
+    if (catId === selectedCategory) return;
+    setCatLoading(true);
+    setSelectedCategory(catId);
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -55,6 +63,7 @@ export default function HomeScreen({ navigation }) {
     (a) => Number(a.price) === 0 || a.category === 'free' || String(a.category).toLowerCase() === 'free'
   );
   const featuredFreeApp = freeApps[0];
+  const activeCategoryObj = CATEGORIES.find((c) => c.id === selectedCategory);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -92,7 +101,7 @@ export default function HomeScreen({ navigation }) {
           if (freeApps.length === 1) {
             navigation.navigate('AppDetail', { appId: freeApps[0].id });
           } else {
-            setSelectedCategory('free');
+            handleCategorySelect('free');
           }
         }}
       >
@@ -136,7 +145,7 @@ export default function HomeScreen({ navigation }) {
                 { backgroundColor: theme.surface, borderColor: theme.border },
                 active && { backgroundColor: theme.primary, borderColor: theme.primary }
               ]}
-              onPress={() => setSelectedCategory(cat.id)}
+              onPress={() => handleCategorySelect(cat.id)}
             >
               <Text
                 style={[
@@ -154,7 +163,9 @@ export default function HomeScreen({ navigation }) {
 
       {/* Toolbar: result count + list/grid toggle */}
       <View style={styles.toolbar}>
-        <Text style={[styles.resultCount, { color: theme.textSecondary }]}>{apps.length} apps</Text>
+        <Text style={[styles.resultCount, { color: theme.textSecondary }]}>
+          {catLoading ? 'Updating category...' : `${apps.length} apps`}
+        </Text>
         <View style={[styles.toggleGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity
             style={[styles.toggleBtn, !isGrid && { backgroundColor: theme.primary }]}
@@ -171,10 +182,13 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* App List */}
-      {loading ? (
+      {/* App List or Category Loader */}
+      {loading || catLoading ? (
         <View style={styles.centered}>
           <ActivityIndicator color={theme.primary} size="large" />
+          <Text style={[styles.loadingCategoryText, { color: theme.textSecondary }]}>
+            Loading {activeCategoryObj?.label || 'apps'}...
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -194,7 +208,7 @@ export default function HomeScreen({ navigation }) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
           ListEmptyComponent={
             <View style={styles.centered}>
-              <Text style={[styles.emptyText, { color: theme.textMuted }]}>No apps found</Text>
+              <Text style={[styles.emptyText, { color: theme.textMuted }]}>No apps found in {activeCategoryObj?.label || 'this category'}</Text>
             </View>
           }
         />
@@ -292,5 +306,6 @@ const styles = StyleSheet.create({
   list: { padding: 20, paddingTop: 16 },
   gridRow: { gap: 12 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60 },
+  loadingCategoryText: { marginTop: 12, fontSize: 13, fontWeight: '600' },
   emptyText: { color: COLORS.textMuted, fontSize: 15 },
 });
