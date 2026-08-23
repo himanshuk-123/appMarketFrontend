@@ -31,7 +31,8 @@
           "backgroundColor": "#0F0F1A"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-google-signin/google-signin"
     ],
     "extra": {
       "eas": {

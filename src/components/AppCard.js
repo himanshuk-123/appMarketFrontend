@@ -20,7 +20,7 @@ export default function AppCard({ app, onPress, grid }) {
     uri: toImageLink(app.thumbnail) || 'https://placehold.co/120x120/1A1A2E/6C63FF?text=App',
   };
   const hasPreview = !!app.livePreviewUrl;
-  const isFree = Number(app.price) === 0;
+  const isFree = Number(app.price) === 0 || app.category === 'free' || String(app.category).toLowerCase() === 'free';
   const rating = app.averageRating ? Number(app.averageRating).toFixed(1) : '4.9';
   const downloads = app.downloadsCount || 12;
 

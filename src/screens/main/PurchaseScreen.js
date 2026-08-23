@@ -14,7 +14,7 @@ export default function PurchaseScreen({ route, navigation }) {
   const { app } = route.params;
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
-  const isFree = Number(app.price) === 0;
+  const isFree = Number(app.price) === 0 || app.category === 'free' || String(app.category).toLowerCase() === 'free';
 
   const handlePurchase = async () => {
     setLoading(true);

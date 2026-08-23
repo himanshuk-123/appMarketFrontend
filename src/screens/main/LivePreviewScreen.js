@@ -6,10 +6,12 @@ import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function LivePreviewScreen({ route, navigation }) {
   const { url, name } = route.params;
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [viewportMode, setViewportMode] = useState('full'); // 'full' | 'frame' | 'desktop'
@@ -33,48 +35,48 @@ export default function LivePreviewScreen({ route, navigation }) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: theme.background }]}>
       {/* Top Device Switcher Header Toolbar */}
-      <View style={styles.topToolbar}>
+      <View style={[styles.topToolbar, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
         <TouchableOpacity
-          style={styles.toolBtn}
+          style={[styles.toolBtn, { backgroundColor: theme.border + '60' }]}
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
-          <Ionicons name="chevron-back" size={22} color="#fff" />
+          <Ionicons name="arrow-back" size={22} color={theme.text} />
         </TouchableOpacity>
 
-        <Text style={styles.appNameTitle} numberOfLines={1}>{name}</Text>
+        <Text style={[styles.appNameTitle, { color: theme.text }]} numberOfLines={1}>{name}</Text>
 
         {/* Viewport Switcher Controls */}
-        <View style={styles.switcherPill}>
+        <View style={[styles.switcherPill, { backgroundColor: theme.background, borderColor: theme.border }]}>
           <TouchableOpacity
-            style={[styles.switchBtn, viewportMode === 'full' && styles.switchBtnActive]}
+            style={[styles.switchBtn, viewportMode === 'full' && { backgroundColor: theme.primary }]}
             onPress={() => setViewportMode('full')}
           >
-            <Ionicons name="phone-portrait" size={14} color={viewportMode === 'full' ? '#fff' : COLORS.textMuted} />
-            <Text style={[styles.switchText, viewportMode === 'full' && styles.switchTextActive]}>Full</Text>
+            <Ionicons name="phone-portrait" size={14} color={viewportMode === 'full' ? '#fff' : theme.textMuted} />
+            <Text style={[styles.switchText, { color: theme.textMuted }, viewportMode === 'full' && styles.switchTextActive]}>Full</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.switchBtn, viewportMode === 'frame' && styles.switchBtnActive]}
+            style={[styles.switchBtn, viewportMode === 'frame' && { backgroundColor: theme.primary }]}
             onPress={() => setViewportMode('frame')}
           >
-            <Ionicons name="hardware-chip-outline" size={14} color={viewportMode === 'frame' ? '#fff' : COLORS.textMuted} />
-            <Text style={[styles.switchText, viewportMode === 'frame' && styles.switchTextActive]}>Frame</Text>
+            <Ionicons name="hardware-chip-outline" size={14} color={viewportMode === 'frame' ? '#fff' : theme.textMuted} />
+            <Text style={[styles.switchText, { color: theme.textMuted }, viewportMode === 'frame' && styles.switchTextActive]}>Frame</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.switchBtn, viewportMode === 'desktop' && styles.switchBtnActive]}
+            style={[styles.switchBtn, viewportMode === 'desktop' && { backgroundColor: theme.primary }]}
             onPress={() => setViewportMode('desktop')}
           >
-            <Ionicons name="desktop-outline" size={14} color={viewportMode === 'desktop' ? '#fff' : COLORS.textMuted} />
-            <Text style={[styles.switchText, viewportMode === 'desktop' && styles.switchTextActive]}>Desktop</Text>
+            <Ionicons name="desktop-outline" size={14} color={viewportMode === 'desktop' ? '#fff' : theme.textMuted} />
+            <Text style={[styles.switchText, { color: theme.textMuted }, viewportMode === 'desktop' && styles.switchTextActive]}>Desktop</Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.toolBtn} onPress={reload} activeOpacity={0.8}>
-          <Ionicons name="refresh-outline" size={18} color="#fff" />
+        <TouchableOpacity style={[styles.toolBtn, { backgroundColor: theme.border + '60' }]} onPress={reload} activeOpacity={0.8}>
+          <Ionicons name="refresh-outline" size={18} color={theme.text} />
         </TouchableOpacity>
       </View>
 

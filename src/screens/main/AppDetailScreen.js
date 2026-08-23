@@ -165,7 +165,7 @@ export default function AppDetailScreen({ route, navigation }) {
     });
   };
 
-  const isFree = Number(app.price) === 0;
+  const isFree = Number(app.price) === 0 || app.category === 'free' || String(app.category).toLowerCase() === 'free';
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>

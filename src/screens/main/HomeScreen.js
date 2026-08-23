@@ -25,9 +25,15 @@ export default function HomeScreen({ navigation }) {
     try {
       const params = {};
       if (search) params.search = search;
-      if (selectedCategory !== 'all') params.category = selectedCategory;
+      if (selectedCategory !== 'all' && selectedCategory !== 'free') params.category = selectedCategory;
       const res = await getApps(params);
-      setApps(res.data.apps);
+      let fetched = res.data.apps || [];
+      if (selectedCategory === 'free') {
+        fetched = fetched.filter(
+          (a) => Number(a.price) === 0 || a.category === 'free' || String(a.category).toLowerCase() === 'free'
+        );
+      }
+      setApps(fetched);
     } catch (err) {
       Alert.alert('Error', err.message || 'Failed to load apps. Check your connection.');
     } finally {
@@ -44,6 +50,11 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(true);
     fetchApps();
   };
+
+  const freeApps = apps.filter(
+    (a) => Number(a.price) === 0 || a.category === 'free' || String(a.category).toLowerCase() === 'free'
+  );
+  const featuredFreeApp = freeApps[0];
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -66,6 +77,47 @@ export default function HomeScreen({ navigation }) {
           onChangeText={setSearch}
         />
       </View>
+
+      {/* Hero Free Starter App Banner */}
+      <TouchableOpacity
+        style={[
+          styles.heroBanner,
+          {
+            backgroundColor: theme.surface,
+            borderColor: (theme.freeAccent || '#00E676') + '80',
+          },
+        ]}
+        activeOpacity={0.88}
+        onPress={() => {
+          if (freeApps.length === 1) {
+            navigation.navigate('AppDetail', { appId: freeApps[0].id });
+          } else {
+            setSelectedCategory('free');
+          }
+        }}
+      >
+        <View style={styles.heroHeaderRow}>
+          <View style={[styles.heroGiftChip, { backgroundColor: (theme.freeAccent || '#00E676') + '22' }]}>
+            <Ionicons name="gift-outline" size={14} color={theme.freeAccent || '#00E676'} />
+            <Text style={[styles.heroGiftChipText, { color: theme.freeAccent || '#00E676' }]}>100% FREE STARTER APP</Text>
+          </View>
+          <Text style={[styles.heroPriceBadge, { color: theme.freeAccent || '#00E676' }]}>₹0 FREE</Text>
+        </View>
+
+        <Text style={[styles.heroTitle, { color: theme.text }]}>
+          {featuredFreeApp ? featuredFreeApp.name : 'Personal Expense & Budget Tracker'}
+        </Text>
+        <Text style={[styles.heroSubtitle, { color: theme.textSecondary }]}>
+          Test our code quality before you buy! Download full source code, APK & AAB files for free.
+        </Text>
+
+        <View style={styles.heroCtaRow}>
+          <Text style={[styles.heroCtaText, { color: theme.primary }]}>
+            {freeApps.length > 1 ? `Explore ${freeApps.length} Free Apps` : 'Claim Free App Now'}
+          </Text>
+          <Ionicons name="arrow-forward-circle" size={20} color={theme.primary} />
+        </View>
+      </TouchableOpacity>
 
       {/* Categories */}
       <ScrollView
@@ -165,10 +217,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   searchIcon: { marginRight: 8 },
   searchInput: { flex: 1, color: COLORS.text, fontSize: 14, paddingVertical: 12 },
+  heroBanner: {
+    marginHorizontal: 20,
+    marginBottom: 14,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
+    elevation: 3,
+  },
+  heroHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  heroGiftChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  heroGiftChipText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  heroPriceBadge: { fontSize: 13, fontWeight: '900' },
+  heroTitle: { fontSize: 17, fontWeight: '800', marginBottom: 4 },
+  heroSubtitle: { fontSize: 12, lineHeight: 17, marginBottom: 12 },
+  heroCtaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  heroCtaText: { fontSize: 13, fontWeight: '800' },
   categoriesScroll: { height: 56, flexGrow: 0, flexShrink: 0 },
   categoriesContent: { paddingHorizontal: 20, gap: 8, alignItems: 'center', paddingVertical: 6 },
   catChip: {
