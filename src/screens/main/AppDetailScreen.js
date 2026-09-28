@@ -5,7 +5,7 @@ import {
   Modal, StatusBar, FlatList, Linking, TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Video, ResizeMode } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants';
 import { getAppById, addAppReview } from '../../api/apps';
@@ -15,11 +15,26 @@ import { useTheme } from '../../context/ThemeContext';
 const { width, height } = Dimensions.get('window');
 const FALLBACK_IMG = require('../../../assets/AppMarketIcon.png');
 
+function ExpoVideoItem({ uri, style }) {
+  const player = useVideoPlayer(uri, (p) => {
+    p.loop = true;
+    p.play();
+  });
+
+  return (
+    <VideoView
+      style={style}
+      player={player}
+      allowsFullscreen
+      allowsPictureInPicture
+    />
+  );
+}
+
 // Full screen media viewer modal
 function MediaViewer({ visible, items, startIndex, onClose }) {
   const [current, setCurrent] = useState(startIndex);
   const flatRef = useRef(null);
-  const videoRef = useRef(null);
 
   useEffect(() => {
     setCurrent(startIndex);
@@ -49,15 +64,7 @@ function MediaViewer({ visible, items, startIndex, onClose }) {
           renderItem={({ item: m }) => (
             <View style={{ width, height, alignItems: 'center', justifyContent: 'center' }}>
               {m.type === 'video' ? (
-                <Video
-                  ref={videoRef}
-                  source={{ uri: m.uri }}
-                  style={{ width, height: height * 0.6 }}
-                  useNativeControls
-                  resizeMode={ResizeMode.CONTAIN}
-                  shouldPlay
-                  isLooping
-                />
+                <ExpoVideoItem uri={m.uri} style={{ width, height: height * 0.6 }} />
               ) : (
                 <Image
                   source={{ uri: m.uri }}
